@@ -26,12 +26,12 @@ export class LambdaPCScalingTargetStack extends Stack {
     this.lambdaFunction = new NodejsFunction(this, 'LambdaFunction', {
       functionName: this.lambdaFunctionName,
       entry: `./lambda/lambda-handler.ts`,
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_20_X,
       memorySize: 512,
       timeout: Duration.seconds(6),
     });
     // Enable Provisioned Concurrency
-    new Alias(this, `LambdaFunctionAlias`, {
+    const alias = new Alias(this, `LambdaFunctionAlias`, {
       aliasName: 'provisioned',
       version: this.lambdaFunction.currentVersion,
       provisionedConcurrentExecutions: 1,
@@ -42,19 +42,21 @@ export class LambdaPCScalingTargetStack extends Stack {
       namespace: 'AWS/Lambda',
       dimensionsMap: {
         FunctionName: this.lambdaFunction.functionName,
-        Resource: `${this.lambdaFunction.functionName}:'provisioned`,
+        Resource: `${this.lambdaFunction.functionName}:provisioned`,
       },
       statistic: 'Maximum',
       period: Duration.minutes(5),
     });
     // Enable AutoScaling Scalable Target when over target threshold(0.8)
-    new ScalableTarget(this, `${this.lambdaFunctionName}ScalableTarget`, {
+    const scalableTarget = new ScalableTarget(this, `${this.lambdaFunctionName}ScalableTarget`, {
       serviceNamespace: ServiceNamespace.LAMBDA,
       maxCapacity: 2,
       minCapacity: 1,
       resourceId: `function:${this.lambdaFunctionName}:provisioned`,
       scalableDimension: 'lambda:function:ProvisionedConcurrency',
-    }).scaleToTrackMetric(`${this.lambdaFunctionName}PCScaleTracking`, {
+    });
+    scalableTarget.node.addDependency(alias);
+    scalableTarget.scaleToTrackMetric(`${this.lambdaFunctionName}PCScaleTracking`, {
       targetValue: 0.8,
       customMetric: metrics,
     });

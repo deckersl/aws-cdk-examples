@@ -25,12 +25,12 @@ export class LambdaPCScalingScheduleStack extends Stack {
     this.lambdaFunction = new NodejsFunction(this, 'LambdaFunction', {
       functionName: this.lambdaFunctionName,
       entry: `./lambda/lambda-handler.ts`,
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_20_X,
       memorySize: 512,
       timeout: Duration.seconds(6),
     });
     // Enable Provisioned Concurrency
-    new Alias(this, `LambdaFunctionAlias`, {
+    const alias = new Alias(this, `LambdaFunctionAlias`, {
       aliasName: 'provisioned',
       version: this.lambdaFunction.currentVersion,
       provisionedConcurrentExecutions: 1,
@@ -43,6 +43,7 @@ export class LambdaPCScalingScheduleStack extends Stack {
       resourceId: `function:${this.lambdaFunctionName}:provisioned`,
       scalableDimension: 'lambda:function:ProvisionedConcurrency',
     })
+    asg.node.addDependency(alias);
     // Scaling out every weekday (Monday through Friday) at 11:00 AM(UTC+0),
     asg.scaleOnSchedule(`${this.lambdaFunctionName}ScheduleScaleOut`, {
       schedule: Schedule.expression('cron(0 11 ? * MON-FRI *))'), 
