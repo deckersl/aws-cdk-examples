@@ -9,6 +9,7 @@ import * as cloudfront_origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import { CfnOutput, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import path = require('path');
+import fs = require('fs');
 
 export interface StaticSiteProps {
   domainName: string;
@@ -92,8 +93,14 @@ export class StaticSite extends Construct {
     });
 
     // Deploy site contents to S3 bucket
+    const indexHtml = fs.readFileSync(path.join(__dirname, './site-contents/index.html'), 'utf8')
+      .replace('{{SITE_DOMAIN}}', siteDomain);
+
     new s3deploy.BucketDeployment(this, 'DeployWithInvalidation', {
-      sources: [s3deploy.Source.asset(path.join(__dirname, './site-contents'))],
+      sources: [
+        s3deploy.Source.data('index.html', indexHtml),
+        s3deploy.Source.asset(path.join(__dirname, './site-contents'), { exclude: ['index.html'] }),
+      ],
       destinationBucket: siteBucket,
       distribution,
       distributionPaths: ['/*'],
