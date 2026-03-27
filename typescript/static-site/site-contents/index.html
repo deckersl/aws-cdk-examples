@@ -1,6 +1,58 @@
-<html>
-<header><title>Hello world</title></header>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Static Site — CDK Example</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0f1b2d 0%, #1a2940 50%, #232f3e 100%);
+      color: #e8e8e8;
+    }
+    .card {
+      text-align: center;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 3rem 4rem;
+      backdrop-filter: blur(12px);
+      max-width: 520px;
+    }
+    h1 { font-size: 2rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .subtitle { color: #ff9900; font-size: 0.95rem; margin-bottom: 2rem; }
+    .versions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem 2rem;
+      text-align: left;
+      font-size: 0.85rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 1.5rem;
+    }
+    .versions dt { color: #8899aa; }
+    .versions dd { color: #ccc; font-family: 'SF Mono', Consolas, monospace; }
+    .ts { color: #555; font-size: 0.75rem; margin-top: 1.5rem; }
+  </style>
+</head>
 <body>
-Hello, world!
+  <div class="card">
+    <h1>Hello, world!</h1>
+    <p class="subtitle">Deployed with AWS CDK &amp; CloudFront</p>
+    <dl class="versions">
+      <dt>aws-cdk-lib</dt><dd>2.190.0</dd>
+      <dt>CDK CLI</dt><dd>2.1010.0</dd>
+      <dt>TypeScript</dt><dd>5.6.3</dd>
+      <dt>Node.js</dt><dd>18.20.2</dd>
+      <dt>Constructs</dt><dd>^10.0.0</dd>
+      <dt>Region</dt><dd>us-east-1</dd>
+    </dl>
+    <p class="ts">your-subdomain.your-domain.com</p>
+  </div>
 </body>
 </html>

@@ -9,10 +9,12 @@ import { StaticSite } from './static-site';
  * {
  *   "context": {
  *     "domain": "mystaticsite.com",
- *     "subdomain": "www",
- *     "accountId": "1234567890",
+ *     "subdomain": "www"
  *   }
  * }
+ *
+ * The AWS account ID is resolved automatically from your CLI credentials
+ * via CDK_DEFAULT_ACCOUNT (no need to pass -c accountId).
 **/
 class MyStaticSiteStack extends cdk.Stack {
     constructor(parent: cdk.App, name: string, props: cdk.StackProps) {
@@ -36,7 +38,7 @@ new MyStaticSiteStack(app, 'MyStaticSite', {
      * @see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
      */
     env: {
-        account: app.node.tryGetContext('accountId'),
+        account: process.env.CDK_DEFAULT_ACCOUNT,
         /**
          * Stack must be in us-east-1, because the ACM certificate for a
          * global CloudFront distribution must be requested in us-east-1.

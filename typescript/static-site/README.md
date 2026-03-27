@@ -23,9 +23,17 @@ The domain for the static site (i.e. mystaticsite.com) must be configured as a h
 
 ## Deploy
 
+The AWS account ID is resolved automatically from your CLI credentials — no need to pass it explicitly.
+
 ```shell
 $ npm install -g aws-cdk
 $ npm install
 $ npm run build
-$ cdk deploy -c accountId=123456789 -c domain=mystaticsite.com -c subdomain=www
+$ cdk deploy -c domain=mystaticsite.com -c subdomain=www
+```
+
+To use a specific AWS profile:
+
+```shell
+$ cdk deploy --profile myprofile -c domain=mystaticsite.com -c subdomain=www
 ```

@@ -1,6 +1,36 @@
-<html>
-<header><title>Hello world: Error</title></header>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Error — Static Site</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0f1b2d 0%, #1a2940 50%, #232f3e 100%);
+      color: #e8e8e8;
+    }
+    .card {
+      text-align: center;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 3rem 4rem;
+      backdrop-filter: blur(12px);
+    }
+    h1 { font-size: 2rem; font-weight: 600; color: #ff4d4d; margin-bottom: 0.5rem; }
+    p { color: #aaa; }
+  </style>
+</head>
 <body>
-Uh oh, you reached the error page!
+  <div class="card">
+    <h1>Oops!</h1>
+    <p>Something went wrong. Please try again later.</p>
+  </div>
 </body>
 </html>
