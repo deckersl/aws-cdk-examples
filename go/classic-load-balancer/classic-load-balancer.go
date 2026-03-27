@@ -22,28 +22,38 @@ func NewClassicLoadBalancerStack(scope constructs.Construct, id string, props *C
 
 	// The code that defines your stack goes here
 
-	vpc := awsec2.NewVpc(stack, jsii.String("VPC"), nil);
+	vpc := awsec2.NewVpc(stack, jsii.String("VPC"), nil)
+
+	sg := awsec2.NewSecurityGroup(stack, jsii.String("ASGSG"), &awsec2.SecurityGroupProps{
+		Vpc: vpc,
+	})
+
+	lt := awsec2.NewLaunchTemplate(stack, jsii.String("LT"), &awsec2.LaunchTemplateProps{
+		InstanceType:  awsec2.NewInstanceType(jsii.String("t2.micro")),
+		MachineImage:  awsec2.MachineImage_LatestAmazonLinux2023(nil),
+		SecurityGroup: sg,
+		UserData:      awsec2.UserData_ForLinux(nil),
+	})
 
 	asg := awsautoscaling.NewAutoScalingGroup(stack, jsii.String("ASG"), &awsautoscaling.AutoScalingGroupProps{
-		Vpc: vpc,
-		InstanceType: awsec2.NewInstanceType(jsii.String("t2.micro")),
-		MachineImage: awsec2.NewAmazonLinuxImage(nil),
-	});
+		Vpc:            vpc,
+		LaunchTemplate: lt,
+	})
 
 	lb := awselasticloadbalancing.NewLoadBalancer(stack, jsii.String("LB"), &awselasticloadbalancing.LoadBalancerProps{
-		Vpc: vpc,
+		Vpc:            vpc,
 		InternetFacing: jsii.Bool(true),
 		HealthCheck: &awselasticloadbalancing.HealthCheck{
 			Port: jsii.Number(80),
 		},
-	});
+	})
 
-	lb.AddTarget(asg);
+	lb.AddTarget(asg)
 	listener := lb.AddListener(&awselasticloadbalancing.LoadBalancerListener{
 		ExternalPort: jsii.Number(80),
-	});
+	})
 
-	listener.Connections().AllowDefaultPortFromAnyIpv4(jsii.String("Open to the world"));
+	listener.Connections().AllowDefaultPortFromAnyIpv4(jsii.String("Open to the world"))
 
 	return stack
 }
