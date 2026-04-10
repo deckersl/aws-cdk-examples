@@ -2,7 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import { AppsyncFunction, AuthorizationType, Code, Definition, FunctionRuntime, GraphqlApi, Resolver } from 'aws-cdk-lib/aws-appsync';
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
-import path = require('path');
+import * as path from 'path';
 
 export class CdkAppsyncDemoStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -11,7 +11,6 @@ export class CdkAppsyncDemoStack extends cdk.Stack {
     // Create DynamoDB tables
     const carsTable = new Table(this, 'CarTable', {
       partitionKey: { name: 'licenseplate', type: AttributeType.STRING },
-      tableName: 'cardata-cars',
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       billingMode: BillingMode.PROVISIONED,
       readCapacity: 2,
@@ -21,7 +20,6 @@ export class CdkAppsyncDemoStack extends cdk.Stack {
     const defectsTable = new Table(this, 'DefectsTable', {
       partitionKey: { name: 'id', type: AttributeType.STRING },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
-      tableName: 'cardata-defects',
       billingMode: BillingMode.PROVISIONED,
       readCapacity: 2,
       writeCapacity: 4
