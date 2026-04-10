@@ -78,7 +78,7 @@ export class CodepipelineBuildDeployStack extends cdk.Stack {
       buildSpec: codebuild.BuildSpec.fromSourceFilename("buildspec.yaml"),
       source: codebuild.Source.codeCommit({ repository: codeRepo }),
       environment: {
-        buildImage: codebuild.LinuxBuildImage.AMAZON_LINUX_2_4,  
+        buildImage: codebuild.LinuxBuildImage.AMAZON_LINUX_2_5,
       }
     });
 
@@ -90,7 +90,7 @@ export class CodepipelineBuildDeployStack extends cdk.Stack {
       architecture: lambda.Architecture.ARM_64,
       code: lambda.Code.fromAsset("./lambda"),
       handler: "trigger-build.handler",
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       environment: {
         REGION: process.env.CDK_DEFAULT_REGION!,
         CODEBUILD_PROJECT_NAME: buildImage.projectName,
@@ -153,7 +153,6 @@ export class CodepipelineBuildDeployStack extends cdk.Stack {
       this,
       "BlueTargetGroup",
       {
-        targetGroupName: "alb-blue-tg",
         targetType: elb.TargetType.IP,
         port: 80,
         vpc: clusterVpc,
@@ -165,7 +164,6 @@ export class CodepipelineBuildDeployStack extends cdk.Stack {
       this,
       "GreenTargetGroup",
       {
-        targetGroupName: "alb-green-tg",
         targetType: elb.TargetType.IP,
         port: 80,
         vpc: clusterVpc,
@@ -201,7 +199,6 @@ export class CodepipelineBuildDeployStack extends cdk.Stack {
     // Creates an ECS Fargate service
     const fargateService = new ecs.FargateService(this, "FargateService", {
       desiredCount: 1,
-      serviceName: "fargate-frontend-service",
       taskDefinition: fargateTaskDef,
       cluster: new ecs.Cluster(this, "EcsCluster", {
         enableFargateCapacityProviders: true,
@@ -288,7 +285,6 @@ export class CodepipelineBuildDeployStack extends cdk.Stack {
 
     // Creates an AWS CodePipeline with source, build, and deploy stages
     new pipeline.Pipeline(this, "BuildDeployPipeline", {
-      pipelineName: "ImageBuildDeployPipeline",
       stages: [sourceStage, testStage, buildStage, deployStage],
     });
 
