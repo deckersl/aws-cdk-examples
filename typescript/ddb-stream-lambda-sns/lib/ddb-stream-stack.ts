@@ -41,13 +41,12 @@ export class DdbStreamStack extends cdk.Stack {
     });
 
     const itemL2TableLambdaFunction = new lambda.Function(this, 'itemL2TableLambdaFunction', {
-      runtime: lambda.Runtime.NODEJS_20_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'index.handler',
       tracing: lambda.Tracing.ACTIVE,
       code: lambda.Code.fromAsset('resources/lambda'),
       environment: {
         SNS_TOPIC_ARN: snsTopic.topicArn,
-        AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
       },
     });
     itemL2TableLambdaFunction.addEventSource(new lambdaEventSources.DynamoEventSource(itemL2Table, {
@@ -72,7 +71,7 @@ export class DdbStreamStack extends cdk.Stack {
       },
       lambdaFunctionProps: {
         code: lambda.Code.fromAsset('resources/lambda'),
-        runtime: lambda.Runtime.NODEJS_20_X,
+        runtime: lambda.Runtime.NODEJS_22_X,
         handler: 'index.handler',
         environment: {
           SNS_TOPIC_ARN: snsTopic.topicArn,
