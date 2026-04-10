@@ -176,7 +176,6 @@ export class WafCloudFrontStack extends cdk.Stack {
         sampledRequestsEnabled: true
       },
       description: "WAFv2 ACL for CloudFront",
-      name: "waf-cloudfront",
       rules: this.makeRules(managedRules),
     }); // wafv2.CfnWebACL
 
@@ -186,8 +185,7 @@ export class WafCloudFrontStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, "wafAclCloudFrontArn", {
       value: wafAclCloudFront.attrArn,
-      description: " WAF CloudFront arn",
-      exportName: "WafCloudFrontStack:WafAclCloudFrontArn"
+      description: "WAF CloudFront ARN",
     });
   } // constructor
 } // class

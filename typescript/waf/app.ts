@@ -8,8 +8,7 @@ import { WafCloudFrontStack } from './waf-cloudfront';
 
 const app = new cdk.App();
 
-new WafRegionalStack(app,   'WafRegionalStack',   {env:{region:"us-east-1"}, description:"WAF Regional"});
-new WafCloudFrontStack(app, 'WafCloudFrontStack', {env:{region:"us-east-1"}, description:"WAF CloudFront"});
+new WafRegionalStack(app,   'WafRegionalStack',   { description: 'WAF Regional' });
+new WafCloudFrontStack(app, 'WafCloudFrontStack', { description: 'WAF CloudFront' });
 
-
-
+app.synth();

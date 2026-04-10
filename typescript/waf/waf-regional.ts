@@ -173,7 +173,6 @@ export class WafRegionalStack extends cdk.Stack {
         sampledRequestsEnabled: true
       },
       description: "WAFv2 ACL for Regional",
-      name: "waf-regional",
       rules: this.makeRules(managedRules),
     }); // wafv2.CfnWebACL
 
@@ -183,8 +182,7 @@ export class WafRegionalStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, "wafAclRegionalArn", {
       value: wafAclRegional.attrArn,
-      description: " WAF Regional arn",
-      exportName: "WafRegionalStack:WafAclRegionalArn"
+      description: "WAF Regional ARN",
     });
   } // constructor
 } // class
