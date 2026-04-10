@@ -2,7 +2,7 @@
   "name": "ec2-instance-cdk",
   "version": "0.1.0",
   "bin": {
-    "ec2-instance-cdk": "bin/app.js"
+    "ec2-instance-cdk": "dist/bin/app.js"
   },
   "scripts": {
     "build": "tsc",

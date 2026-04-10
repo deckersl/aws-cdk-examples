@@ -2,9 +2,7 @@
   "compilerOptions": {
     "target": "ES2018",
     "module": "commonjs",
-    "lib": [
-      "es2018"
-    ],
+    "lib": ["es2018"],
     "declaration": true,
     "strict": true,
     "noImplicitAny": true,
@@ -19,23 +17,8 @@
     "inlineSources": true,
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
-    "typeRoots": [
-      "./node_modules/@types"
-    ],
-    "outDir": "lib",
-    "rootDir": "../..",
-    "baseUrl": ".",
-    "paths": {
-      "../../test-utils/*": ["../../test-utils/*"]
-    }
+    "typeRoots": ["./node_modules/@types"],
+    "outDir": "dist"
   },
-  "exclude": [
-    "node_modules",
-    "cdk.out",
-    "lib"
-  ],
-  "include": [
-    "**/*.ts",
-    "../../test-utils/**/*.ts"
-  ]
+  "exclude": ["node_modules", "cdk.out", "dist"]
 }

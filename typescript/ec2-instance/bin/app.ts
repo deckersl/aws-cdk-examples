@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import 'dotenv/config';
-import { App } from 'aws-cdk-lib';
+import * as cdk from 'aws-cdk-lib';
 import { EC2Stack } from '../lib/ec2-stack';
 
-const app = new App();
+const app = new cdk.App();
 
 const devEnv = {
   account: process.env.CDK_DEFAULT_ACCOUNT,
