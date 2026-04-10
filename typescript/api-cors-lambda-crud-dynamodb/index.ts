@@ -25,17 +25,12 @@ export class ApiLambdaCrudDynamoDBStack extends Stack {
     });
 
     const nodeJsFunctionProps: NodejsFunctionProps = {
-      bundling: {
-        externalModules: [
-          'aws-sdk', // Use the 'aws-sdk' available in the Lambda runtime
-        ],
-      },
       depsLockFilePath: join(__dirname, 'lambdas', 'package-lock.json'),
       environment: {
         PRIMARY_KEY: 'itemId',
         TABLE_NAME: dynamoTable.tableName,
       },
-      runtime: Runtime.NODEJS_20_X,
+      runtime: Runtime.NODEJS_22_X,
     }
 
     // Create a Lambda function for each of the CRUD operations
