@@ -75,7 +75,6 @@ class WAFRegionalStack extends Stack {
                     .sampledRequestsEnabled(true)
                     .build())
             .description("WAFv2 ACL for Regional")
-            .name("waf-regional")
             .rules(makeRules(managedRules))
             .build();
 
@@ -86,7 +85,6 @@ class WAFRegionalStack extends Stack {
     CfnOutput.Builder.create(this, "wafAclRegionalArn")
         .description("WAF Regional arn")
         .value(cfnWebACL.getAttrArn())
-        .exportName("WafRegionalStack:WafAclRegionalArn")
         .build();
   }
 

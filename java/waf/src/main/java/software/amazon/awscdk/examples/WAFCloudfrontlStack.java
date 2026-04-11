@@ -75,7 +75,6 @@ class WAFCloudFrontStack extends Stack {
                     .sampledRequestsEnabled(true)
                     .build())
             .description("WAFv2 ACL for CloudFront")
-            .name("waf-cloudfront")
             .rules(makeRules(managedRules))
             .build();
 
@@ -86,7 +85,6 @@ class WAFCloudFrontStack extends Stack {
     CfnOutput.Builder.create(this, "wafAclCloudFrontArn")
         .description("WAF CloudFront arn")
         .value(cfnWebACL.getAttrArn())
-        .exportName("WafCloudFrontStack:WafAclCloudFrontArn")
         .build();
   }
 
