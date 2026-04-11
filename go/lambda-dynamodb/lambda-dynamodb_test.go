@@ -9,22 +9,16 @@ import (
 )
 
 func TestLambdaDynamodbStack(t *testing.T) {
-	// GIVEN
 	app := awscdk.NewApp(nil)
-
-	// WHEN
 	stack := NewLambdaDynamodbStack(app, "MyStack", nil)
-
-	// THEN
 	template := assertions.Template_FromStack(stack)
 
 	template.HasResourceProperties(jsii.String("AWS::Lambda::Function"), map[string]interface{}{
-		"Runtime": "go1.x",
+		"Runtime": "provided.al2023",
 	})
 
 	template.HasResourceProperties(jsii.String("AWS::DynamoDB::Table"), map[string]interface{}{
 		"BillingMode": "PAY_PER_REQUEST",
-		"TableName":   "MyDynamoDB",
 		"AttributeDefinitions": []map[string]interface{}{
 			{
 				"AttributeName": "ID",

@@ -3,10 +3,8 @@ package main
 import (
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsdynamodb"
-	"github.com/aws/aws-cdk-go/awscdk/v2/awsiam"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awslambda"
 	"github.com/aws/aws-cdk-go/awscdklambdagoalpha/v2"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 )
@@ -22,33 +20,30 @@ func NewLambdaDynamodbStack(scope constructs.Construct, id string, props *Lambda
 	}
 	stack := awscdk.NewStack(scope, &id, &sprops)
 
-	// create AmazonDynamoDBFullAccess role
-	dynamoDBRole := awsiam.NewRole(stack, aws.String("myDynamoDBFullAccessRole"), &awsiam.RoleProps{
-		AssumedBy: awsiam.NewServicePrincipal(aws.String("lambda.amazonaws.com"), &awsiam.ServicePrincipalOpts{}),
-		ManagedPolicies: &[]awsiam.IManagedPolicy{
-			awsiam.ManagedPolicy_FromManagedPolicyArn(stack, aws.String("AmazonDynamoDBFullAccess"), aws.String("arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess")),
+	// create DynamoDB table (no hardcoded name — let CFN generate it)
+	table := awsdynamodb.NewTable(stack, jsii.String("myDynamoDB"), &awsdynamodb.TableProps{
+		BillingMode: awsdynamodb.BillingMode_PAY_PER_REQUEST,
+		PartitionKey: &awsdynamodb.Attribute{
+			Name: jsii.String("ID"),
+			Type: awsdynamodb.AttributeType_STRING,
 		},
+		RemovalPolicy: awscdk.RemovalPolicy_DESTROY,
 	})
 
-	// create lambda function with previously created AmazonDynamoDBFullAccess role
+	// create lambda function with provided.al2023 runtime
 	lambdaFunction := awscdklambdagoalpha.NewGoFunction(stack, jsii.String("myGoHandler"), &awscdklambdagoalpha.GoFunctionProps{
-		Runtime: awslambda.Runtime_GO_1_X(),
+		Runtime: awslambda.Runtime_PROVIDED_AL2023(),
 		Entry:   jsii.String("./lambda-handler"),
 		Bundling: &awscdklambdagoalpha.BundlingOptions{
 			GoBuildFlags: jsii.Strings(`-ldflags "-s -w"`),
 		},
-		Role: dynamoDBRole,
-	})
-
-	// create DynamoDB table
-	awsdynamodb.NewTable(stack, jsii.String("myDynamoDB"), &awsdynamodb.TableProps{
-		BillingMode: awsdynamodb.BillingMode_PAY_PER_REQUEST,
-		TableName:   jsii.String("MyDynamoDB"),
-		PartitionKey: &awsdynamodb.Attribute{
-			Name: aws.String("ID"),
-			Type: awsdynamodb.AttributeType_STRING,
+		Environment: &map[string]*string{
+			"TABLE_NAME": table.TableName(),
 		},
 	})
+
+	// grant the lambda read/write access to the table
+	table.GrantReadWriteData(lambdaFunction)
 
 	// log lambda function ARN
 	awscdk.NewCfnOutput(stack, jsii.String("lambdaFunctionArn"), &awscdk.CfnOutputProps{
