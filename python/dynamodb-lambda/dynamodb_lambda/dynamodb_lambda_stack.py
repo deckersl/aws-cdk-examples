@@ -3,7 +3,7 @@ from aws_cdk import (
     aws_dynamodb,
     aws_events,
     aws_events_targets,
-    Duration, Stack
+    Duration, RemovalPolicy, Stack
 )
 from constructs import Construct
 
@@ -18,12 +18,13 @@ class DynamodbLambdaStack(Stack):
             partition_key=aws_dynamodb.Attribute(
                 name="id",
                 type=aws_dynamodb.AttributeType.STRING
-            )
+            ),
+            removal_policy=RemovalPolicy.DESTROY,
         )
 
         # create producer lambda function
         producer_lambda = aws_lambda.Function(self, "producer_lambda_function",
-                                              runtime=aws_lambda.Runtime.PYTHON_3_6,
+                                              runtime=aws_lambda.Runtime.PYTHON_3_13,
                                               handler="lambda_function.lambda_handler",
                                               code=aws_lambda.Code.from_asset("./lambda/producer"))
 
@@ -34,7 +35,7 @@ class DynamodbLambdaStack(Stack):
 
         # create consumer lambda function
         consumer_lambda = aws_lambda.Function(self, "consumer_lambda_function",
-                                              runtime=aws_lambda.Runtime.PYTHON_3_6,
+                                              runtime=aws_lambda.Runtime.PYTHON_3_13,
                                               handler="lambda_function.lambda_handler",
                                               code=aws_lambda.Code.from_asset("./lambda/consumer"))
 
