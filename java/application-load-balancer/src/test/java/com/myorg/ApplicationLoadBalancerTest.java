@@ -13,7 +13,10 @@ public class ApplicationLoadBalancerTest {
 
   @BeforeAll
   public static void setUp() {
-    var app = new App();
+    var app = new App(software.amazon.awscdk.AppProps.builder()
+      .context(java.util.Map.of(
+        "@aws-cdk/aws-autoscaling:generateLaunchTemplateInsteadOfLaunchConfig", true))
+      .build());
     var stackProps = StackProps.builder().build();
     var stack = new ApplicationLoadBalancerStack(app, "ApplicationLoadBalancerStack", stackProps);
     template = Template.fromStack(stack);
@@ -98,9 +101,9 @@ public class ApplicationLoadBalancerTest {
   }
 
   @Test
-  @DisplayName("Test if number of launch configurations in the stack is equal to the expected value.")
-  public void testLaunchConfigurationsCount() {
-    template.resourceCountIs("AWS::AutoScaling::LaunchConfiguration", 1);
+  @DisplayName("Test if number of launch templates in the stack is equal to the expected value.")
+  public void testLaunchTemplatesCount() {
+    template.resourceCountIs("AWS::EC2::LaunchTemplate", 1);
   }
 
   @Test
