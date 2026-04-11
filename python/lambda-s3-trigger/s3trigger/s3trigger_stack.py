@@ -1,4 +1,5 @@
 from aws_cdk import (
+    RemovalPolicy,
     aws_lambda as _lambda,
     aws_s3 as _s3,
     aws_s3_notifications,
@@ -13,11 +14,13 @@ class S3TriggerStack(Stack):
 
         # create lambda function
         function = _lambda.Function(self, "lambda_function",
-                                    runtime=_lambda.Runtime.PYTHON_3_7,
+                                    runtime=_lambda.Runtime.PYTHON_3_13,
                                     handler="lambda-handler.main",
                                     code=_lambda.Code.from_asset("./lambda"))
         # create s3 bucket
-        s3 = _s3.Bucket(self, "s3bucket")
+        s3 = _s3.Bucket(self, "s3bucket",
+                         auto_delete_objects=True,
+                         removal_policy=RemovalPolicy.DESTROY)
 
         # create s3 notification for lambda function
         notification = aws_s3_notifications.LambdaDestination(function)
