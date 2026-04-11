@@ -26,7 +26,7 @@ func NewLambdaCronStack(scope constructs.Construct, id string, props *LambdaCron
 		Code: awslambda.NewAssetCode(jsii.String("lambda"), nil),
 		Handler: jsii.String("handler.main"),
 		Timeout: awscdk.Duration_Seconds(jsii.Number(300)),
-		Runtime: awslambda.Runtime_PYTHON_3_6(),
+		Runtime: awslambda.Runtime_PYTHON_3_12(),
 	});
 
 	// Run every day at 6PM UTC
