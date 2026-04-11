@@ -1,60 +1,49 @@
-import { LambdaRestApi, CfnAuthorizer, LambdaIntegration, AuthorizationType } from 'aws-cdk-lib/aws-apigateway';
-import { AssetCode, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { App, Stack } from 'aws-cdk-lib';
-import { UserPool } from 'aws-cdk-lib/aws-cognito'
+import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
 
-export class CognitoProtectedApi extends Stack {
-  constructor(app: App, id: string) {
+export class CognitoProtectedApi extends cdk.Stack {
+  constructor(app: cdk.App, id: string) {
     super(app, id);
 
-    // Function that returns 201 with "Hello world!"
-    const helloWorldFunction = new Function(this, 'helloWorldFunction', {
-      code: new AssetCode('src'),
+    const helloWorldFunction = new lambda.Function(this, 'helloWorldFunction', {
+      code: new lambda.AssetCode('src'),
       handler: 'helloworld.handler',
-      runtime: Runtime.NODEJS_18_X
+      runtime: lambda.Runtime.NODEJS_22_X,
     });
 
-    // Rest API backed by the helloWorldFunction
-    const helloWorldLambdaRestApi = new LambdaRestApi(this, 'helloWorldLambdaRestApi', {
+    const helloWorldLambdaRestApi = new apigateway.LambdaRestApi(this, 'helloWorldLambdaRestApi', {
       restApiName: 'Hello World API',
       handler: helloWorldFunction,
       proxy: false,
     });
 
-    // Cognito User Pool with Email Sign-in Type.
-    const userPool = new UserPool(this, 'userPool', {
+    const userPool = new cognito.UserPool(this, 'userPool', {
       signInAliases: {
-        email: true
-      }
-    })
+        email: true,
+      },
+    });
 
-    // Authorizer for the Hello World API that uses the
-    // Cognito User pool to Authorize users.
-    const authorizer = new CfnAuthorizer(this, 'cfnAuth', {
+    const authorizer = new apigateway.CfnAuthorizer(this, 'cfnAuth', {
       restApiId: helloWorldLambdaRestApi.restApiId,
       name: 'HelloWorldAPIAuthorizer',
       type: 'COGNITO_USER_POOLS',
       identitySource: 'method.request.header.Authorization',
       providerArns: [userPool.userPoolArn],
-    })
+    });
 
-    // Hello Resource API for the REST API. 
     const hello = helloWorldLambdaRestApi.root.addResource('HELLO');
 
-    // GET method for the HELLO API resource. It uses Cognito for
-    // authorization and the auathorizer defined above.
-    hello.addMethod('GET', new LambdaIntegration(helloWorldFunction), {
-      authorizationType: AuthorizationType.COGNITO,
+    hello.addMethod('GET', new apigateway.LambdaIntegration(helloWorldFunction), {
+      authorizationType: apigateway.AuthorizationType.COGNITO,
       authorizer: {
-        authorizerId: authorizer.ref
-      }
-      
-    })
-    
+        authorizerId: authorizer.ref,
+      },
+    });
   }
 }
 
-
-const app = new App();
+const app = new cdk.App();
 new CognitoProtectedApi(app, 'CognitoProtectedApi');
 app.synth();
