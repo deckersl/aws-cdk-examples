@@ -1,15 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	ec2 "github.com/aws/aws-cdk-go/awscdk/v2/awsec2"
 	iam "github.com/aws/aws-cdk-go/awscdk/v2/awsiam"
-	assets "github.com/aws/aws-cdk-go/awscdk/v2/awss3assets"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
-	"os"
-	"path/filepath"
 )
 
 type Ec2InstanceStackProps struct {
@@ -21,107 +17,76 @@ func NewEc2InstanceStack(scope constructs.Construct, id string, props *Ec2Instan
 	if props != nil {
 		sprops = props.StackProps
 	}
-	sourceDir, err := os.Getwd()
-	if err != nil {
-		fmt.Println("Error getting source path: ", err)
-		return nil
-	}
-
-	// Construct the abs path of asset script
-	scriptPath := filepath.Join(sourceDir, "configure.sh")
-
 	stack := awscdk.NewStack(scope, &id, &sprops)
 
-	// Define VPC
 	vpc := ec2.NewVpc(stack, jsii.String("VPC"), &ec2.VpcProps{
 		NatGateways: jsii.Number(0),
-		SubnetConfiguration: &[]*ec2.SubnetConfiguration{
-			{
-				CidrMask:   jsii.Number(24),
-				Name:       jsii.String("asterisk"),
-				SubnetType: ec2.SubnetType_PUBLIC,
-			},
-		},
+		SubnetConfiguration: &[]*ec2.SubnetConfiguration{{
+			CidrMask:   jsii.Number(24),
+			Name:       jsii.String("public"),
+			SubnetType: ec2.SubnetType_PUBLIC,
+		}},
 	})
 
-	// Define AMI
-	ami := ec2.NewAmazonLinuxImage(&ec2.AmazonLinuxImageProps{
-		Generation:     ec2.AmazonLinuxGeneration_AMAZON_LINUX_2,
-		Edition:        ec2.AmazonLinuxEdition_STANDARD,
-		Virtualization: ec2.AmazonLinuxVirt_HVM,
-		Storage:        ec2.AmazonLinuxStorage_GENERAL_PURPOSE,
-	})
-
-	// Instance Role and SSM managed policy
 	role := iam.NewRole(stack, jsii.String("InstanceSSM"), &iam.RoleProps{
 		AssumedBy: iam.NewServicePrincipal(jsii.String("ec2.amazonaws.com"), nil),
 	})
-
 	role.AddManagedPolicy(iam.ManagedPolicy_FromAwsManagedPolicyName(jsii.String("AmazonSSMManagedInstanceCore")))
 
-	// Define Instance
+	sg := ec2.NewSecurityGroup(stack, jsii.String("SG"), &ec2.SecurityGroupProps{
+		Vpc:              vpc,
+		AllowAllOutbound: jsii.Bool(true),
+	})
+	sg.AddIngressRule(ec2.Peer_AnyIpv4(), ec2.Port_Tcp(jsii.Number(80)), jsii.String("HTTP"), nil)
+
 	instance := ec2.NewInstance(stack, jsii.String("Instance"), &ec2.InstanceProps{
-		InstanceType: ec2.NewInstanceType(jsii.String("t3.nano")),
-		MachineImage: ami,
-		Vpc:          vpc,
-		Role:         role,
+		InstanceType: ec2.NewInstanceType(jsii.String("t4g.micro")),
+		MachineImage: ec2.MachineImage_LatestAmazonLinux2023(&ec2.AmazonLinux2023ImageSsmParameterProps{
+			CpuType: ec2.AmazonLinuxCpuType_ARM_64,
+		}),
+		Vpc:                      vpc,
+		Role:                     role,
+		SecurityGroup:            sg,
+		RequireImdsv2:            jsii.Bool(true),
+		VpcSubnets:               &ec2.SubnetSelection{SubnetType: ec2.SubnetType_PUBLIC},
+		AssociatePublicIpAddress: jsii.Bool(true),
 	})
 
-	// Script in S3 as asset
-	asset := assets.NewAsset(stack, jsii.String("Asset"), &assets.AssetProps{
-		Path: jsii.String(scriptPath),
-	})
-	localAsset := instance.UserData().AddS3DownloadCommand(&ec2.S3DownloadOptions{
-		Bucket:    asset.Bucket(),
-		BucketKey: asset.S3ObjectKey(),
-	})
+	instance.UserData().AddCommands(
+		jsii.String("#!/bin/bash"),
+		jsii.String("dnf install -y httpd"),
+		jsii.String("systemctl enable httpd"),
+		jsii.String("TOKEN=$(curl -s -X PUT http://169.254.169.254/latest/api/token -H \"X-aws-ec2-metadata-token-ttl-seconds: 300\")"),
+		jsii.String("H(){ curl -s -H \"X-aws-ec2-metadata-token: $TOKEN\" http://169.254.169.254/latest/meta-data/$1; }"),
+		jsii.String("cat > /var/www/html/index.html <<'ENDOFHTML'\n"+
+			"<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>EC2 Info</title>\n"+
+			"<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#1a1a2e;color:#e0e0e0;font-family:system-ui;display:flex;justify-content:center;align-items:center;min-height:100vh}.card{background:#16213e;border-radius:12px;padding:2rem;max-width:480px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.4)}.card h1{color:#0f9;margin-bottom:1rem;font-size:1.5rem}.row{display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid #1a1a2e}.row:last-child{border:none}.label{color:#888}.value{color:#0f9;font-weight:600}</style>\n"+
+			"</head><body><div class=\"card\"><h1>&#x1F4E6; EC2 Instance Info</h1><div id=\"info\"></div></div>\n"+
+			"<script>const d=document.getElementById('info');const items={\n"+
+			"ENDOFHTML"),
+		jsii.String("echo \"'Instance ID':'$(H instance-id)',\" >> /var/www/html/index.html"),
+		jsii.String("echo \"'Instance Type':'$(H instance-type)',\" >> /var/www/html/index.html"),
+		jsii.String("echo \"'Availability Zone':'$(H placement/availability-zone)',\" >> /var/www/html/index.html"),
+		jsii.String("echo \"'Private IP':'$(H local-ipv4)',\" >> /var/www/html/index.html"),
+		jsii.String("echo \"'Public IP':'$(H public-ipv4)',\" >> /var/www/html/index.html"),
+		jsii.String("echo \"'AMI ID':'$(H ami-id)',\" >> /var/www/html/index.html"),
+		jsii.String("echo \"'Architecture':'$(uname -m)',\" >> /var/www/html/index.html"),
+		jsii.String("cat >> /var/www/html/index.html <<'ENDOFHTML'\n"+
+			"};Object.entries(items).forEach(([k,v])=>{d.innerHTML+=`<div class=\"row\"><span class=\"label\">${k}</span><span class=\"value\">${v}</span></div>`})</script></body></html>\n"+
+			"ENDOFHTML"),
+		jsii.String("systemctl start httpd"),
+	)
 
-	// Userdata executes script from S3
-	instance.UserData().AddExecuteFileCommand(&ec2.ExecuteFileOptions{
-		FilePath: localAsset,
+	awscdk.NewCfnOutput(stack, jsii.String("InstancePublicIP"), &awscdk.CfnOutputProps{
+		Value: instance.InstancePublicIp(),
 	})
-	asset.GrantRead(instance.Role())
 
 	return stack
 }
 
 func main() {
 	defer jsii.Close()
-
 	app := awscdk.NewApp(nil)
-
-	NewEc2InstanceStack(app, "Ec2InstanceStack", &Ec2InstanceStackProps{
-		awscdk.StackProps{
-			Env: env(),
-		},
-	})
-
+	NewEc2InstanceStack(app, "Ec2InstanceStack", &Ec2InstanceStackProps{})
 	app.Synth(nil)
-}
-
-// env determines the AWS environment (account+region) in which our stack is to
-// be deployed. For more information see: https://docs.aws.amazon.com/cdk/latest/guide/environments.html
-func env() *awscdk.Environment {
-	// If unspecified, this stack will be "environment-agnostic".
-	// Account/Region-dependent features and context lookups will not work, but a
-	// single synthesized template can be deployed anywhere.
-	//---------------------------------------------------------------------------
-	return nil
-
-	// Uncomment if you know exactly what account and region you want to deploy
-	// the stack to. This is the recommendation for production stacks.
-	//---------------------------------------------------------------------------
-	// return &awscdk.Environment{
-	//  Account: jsii.String("123456789012"),
-	//  Region:  jsii.String("us-east-1"),
-	// }
-
-	// Uncomment to specialize this stack for the AWS Account and Region that are
-	// implied by the current CLI configuration. This is recommended for dev
-	// stacks.
-	//---------------------------------------------------------------------------
-	// return &awscdk.Environment{
-	//  Account: jsii.String(os.Getenv("CDK_DEFAULT_ACCOUNT")),
-	//  Region:  jsii.String(os.Getenv("CDK_DEFAULT_REGION")),
-	// }
 }
