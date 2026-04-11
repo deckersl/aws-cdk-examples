@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import software.constructs.Construct;
 import software.amazon.awscdk.Duration;
+import software.amazon.awscdk.RemovalPolicy;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.services.apigateway.LambdaIntegration;
 import software.amazon.awscdk.services.apigateway.Resource;
@@ -23,7 +24,10 @@ public class MyWidgetServiceStack extends Stack {
   public MyWidgetServiceStack(final Construct scope, final String id) {
     super(scope, id, null);
 
-    Bucket bucket = Bucket.Builder.create(this, "WidgetStore").build();
+    Bucket bucket = Bucket.Builder.create(this, "WidgetStore")
+        .autoDeleteObjects(true)
+        .removalPolicy(RemovalPolicy.DESTROY)
+        .build();
 
     RestApi api =
         RestApi.Builder.create(this, "widgets-api")
@@ -48,7 +52,7 @@ public class MyWidgetServiceStack extends Stack {
             .code(Code.fromAsset("resources"))
             .handler("widgets.main")
             .timeout(Duration.seconds(300))
-            .runtime(Runtime.NODEJS_20_X)
+            .runtime(Runtime.NODEJS_22_X)
             .environment(environmentVariables)
             .build();
 

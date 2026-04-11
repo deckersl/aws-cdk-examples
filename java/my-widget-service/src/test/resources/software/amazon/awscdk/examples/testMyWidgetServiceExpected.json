@@ -2,10 +2,161 @@
   "Resources": {
     "WidgetStoreDA467545": {
       "Type": "AWS::S3::Bucket",
-      "UpdateReplacePolicy": "Retain",
-      "DeletionPolicy": "Retain",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "aws-cdk:auto-delete-objects",
+            "Value": "true"
+          }
+        ]
+      },
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
       "Metadata": {
         "aws:cdk:path": "MyWidgetServiceStack/WidgetStore/Resource"
+      }
+    },
+    "WidgetStorePolicyFE1A714C": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "WidgetStoreDA467545"
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:PutBucketPolicy",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:DeleteObject*"
+              ],
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::GetAtt": [
+                    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+                    "Arn"
+                  ]
+                }
+              },
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "WidgetStoreDA467545",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "WidgetStoreDA467545",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          "Version": "2012-10-17"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/WidgetStore/Policy/Resource"
+      }
+    },
+    "WidgetStoreAutoDeleteObjectsCustomResource3A734455": {
+      "Type": "Custom::S3AutoDeleteObjects",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F",
+            "Arn"
+          ]
+        },
+        "BucketName": {
+          "Ref": "WidgetStoreDA467545"
+        }
+      },
+      "DependsOn": [
+        "WidgetStorePolicyFE1A714C"
+      ],
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/WidgetStore/AutoDeleteObjectsCustomResource/Default"
+      }
+    },
+    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Role"
+      }
+    },
+    "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+          },
+          "S3Key": "faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6.zip"
+        },
+        "Timeout": 900,
+        "MemorySize": 128,
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs22.x",
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              "Lambda function for auto-deleting objects in ",
+              {
+                "Ref": "WidgetStoreDA467545"
+              },
+              " S3 bucket."
+            ]
+          ]
+        }
+      },
+      "DependsOn": [
+        "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092"
+      ],
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Handler",
+        "aws:asset:path": "/tmp/cdk-custom-resourceLqv34e",
+        "aws:asset:property": "Code"
       }
     },
     "widgetsapi0BCA0B12": {
@@ -13,34 +164,9 @@
       "Properties": {
         "Description": "This service serves widgets.",
         "Name": "Widget Service"
-      }
-    },
-    "widgetsapiDeployment9DE33693f5d10b1c7a4d83225f450a349bf4aa45": {
-      "Type": "AWS::ApiGateway::Deployment",
-      "Properties": {
-        "RestApiId": {
-          "Ref": "widgetsapi0BCA0B12"
-        },
-        "Description": "Automatically created by the RestApi construct"
       },
-      "DependsOn": [
-        "widgetsapiidDELETEE1FEF8E3",
-        "widgetsapiidGETDEFE5D49",
-        "widgetsapiidPOSTCE874B77",
-        "widgetsapiidBF5424ED",
-        "widgetsapiGETFE8E3A17"
-      ]
-    },
-    "widgetsapiDeploymentStageprod19E45538": {
-      "Type": "AWS::ApiGateway::Stage",
-      "Properties": {
-        "RestApiId": {
-          "Ref": "widgetsapi0BCA0B12"
-        },
-        "DeploymentId": {
-          "Ref": "widgetsapiDeployment9DE33693f5d10b1c7a4d83225f450a349bf4aa45"
-        },
-        "StageName": "prod"
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/widgets-api/Resource"
       }
     },
     "widgetsapiCloudWatchRole13420B98": {
@@ -72,6 +198,11 @@
             ]
           }
         ]
+      },
+      "UpdateReplacePolicy": "Retain",
+      "DeletionPolicy": "Retain",
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/widgets-api/CloudWatchRole/Resource"
       }
     },
     "widgetsapiAccount54650C10": {
@@ -86,7 +217,50 @@
       },
       "DependsOn": [
         "widgetsapi0BCA0B12"
-      ]
+      ],
+      "UpdateReplacePolicy": "Retain",
+      "DeletionPolicy": "Retain",
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/widgets-api/Account"
+      }
+    },
+    "widgetsapiDeployment9DE33693b61d58a346bb4ff71e9bdbbc59e6cf82": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "Properties": {
+        "Description": "This service serves widgets.",
+        "RestApiId": {
+          "Ref": "widgetsapi0BCA0B12"
+        }
+      },
+      "DependsOn": [
+        "widgetsapiidDELETEE1FEF8E3",
+        "widgetsapiidGETDEFE5D49",
+        "widgetsapiidPOSTCE874B77",
+        "widgetsapiidBF5424ED",
+        "widgetsapiGETFE8E3A17"
+      ],
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/widgets-api/Deployment/Resource",
+        "aws:cdk:do-not-refactor": true
+      }
+    },
+    "widgetsapiDeploymentStageprod19E45538": {
+      "Type": "AWS::ApiGateway::Stage",
+      "Properties": {
+        "DeploymentId": {
+          "Ref": "widgetsapiDeployment9DE33693b61d58a346bb4ff71e9bdbbc59e6cf82"
+        },
+        "RestApiId": {
+          "Ref": "widgetsapi0BCA0B12"
+        },
+        "StageName": "prod"
+      },
+      "DependsOn": [
+        "widgetsapiAccount54650C10"
+      ],
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/widgets-api/DeploymentStage.prod/Resource"
+      }
     },
     "widgetsapiGETApiPermissionMyWidgetServiceStackwidgetsapiFB659348GET647F652A": {
       "Type": "AWS::Lambda::Permission",
@@ -127,6 +301,9 @@
             ]
           ]
         }
+      },
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/widgets-api/Default/GET/ApiPermission.MyWidgetServiceStackwidgetsapiFB659348.GET.."
       }
     },
     "widgetsapiGETApiPermissionTestMyWidgetServiceStackwidgetsapiFB659348GETCF27A0C2": {
@@ -164,22 +341,16 @@
             ]
           ]
         }
+      },
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/widgets-api/Default/GET/ApiPermission.Test.MyWidgetServiceStackwidgetsapiFB659348.GET.."
       }
     },
     "widgetsapiGETFE8E3A17": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
-        "HttpMethod": "GET",
-        "ResourceId": {
-          "Fn::GetAtt": [
-            "widgetsapi0BCA0B12",
-            "RootResourceId"
-          ]
-        },
-        "RestApiId": {
-          "Ref": "widgetsapi0BCA0B12"
-        },
         "AuthorizationType": "NONE",
+        "HttpMethod": "GET",
         "Integration": {
           "IntegrationHttpMethod": "POST",
           "RequestTemplates": {
@@ -209,7 +380,19 @@
               ]
             ]
           }
+        },
+        "ResourceId": {
+          "Fn::GetAtt": [
+            "widgetsapi0BCA0B12",
+            "RootResourceId"
+          ]
+        },
+        "RestApiId": {
+          "Ref": "widgetsapi0BCA0B12"
         }
+      },
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/widgets-api/Default/GET/Resource"
       }
     },
     "widgetsapiidBF5424ED": {
@@ -225,6 +408,9 @@
         "RestApiId": {
           "Ref": "widgetsapi0BCA0B12"
         }
+      },
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/widgets-api/Default/{id}/Resource"
       }
     },
     "widgetsapiidPOSTApiPermissionMyWidgetServiceStackwidgetsapiFB659348POSTid4398F6FA": {
@@ -262,10 +448,13 @@
               {
                 "Ref": "widgetsapiDeploymentStageprod19E45538"
               },
-              "/POST/{id}"
+              "/POST/*"
             ]
           ]
         }
+      },
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/widgets-api/Default/{id}/POST/ApiPermission.MyWidgetServiceStackwidgetsapiFB659348.POST..{id}"
       }
     },
     "widgetsapiidPOSTApiPermissionTestMyWidgetServiceStackwidgetsapiFB659348POSTid02525BD0": {
@@ -299,23 +488,20 @@
               {
                 "Ref": "widgetsapi0BCA0B12"
               },
-              "/test-invoke-stage/POST/{id}"
+              "/test-invoke-stage/POST/*"
             ]
           ]
         }
+      },
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/widgets-api/Default/{id}/POST/ApiPermission.Test.MyWidgetServiceStackwidgetsapiFB659348.POST..{id}"
       }
     },
     "widgetsapiidPOSTCE874B77": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
-        "HttpMethod": "POST",
-        "ResourceId": {
-          "Ref": "widgetsapiidBF5424ED"
-        },
-        "RestApiId": {
-          "Ref": "widgetsapi0BCA0B12"
-        },
         "AuthorizationType": "NONE",
+        "HttpMethod": "POST",
         "Integration": {
           "IntegrationHttpMethod": "POST",
           "Type": "AWS_PROXY",
@@ -342,7 +528,16 @@
               ]
             ]
           }
+        },
+        "ResourceId": {
+          "Ref": "widgetsapiidBF5424ED"
+        },
+        "RestApiId": {
+          "Ref": "widgetsapi0BCA0B12"
         }
+      },
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/widgets-api/Default/{id}/POST/Resource"
       }
     },
     "widgetsapiidGETApiPermissionMyWidgetServiceStackwidgetsapiFB659348GETidF75E6E60": {
@@ -380,10 +575,13 @@
               {
                 "Ref": "widgetsapiDeploymentStageprod19E45538"
               },
-              "/GET/{id}"
+              "/GET/*"
             ]
           ]
         }
+      },
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/widgets-api/Default/{id}/GET/ApiPermission.MyWidgetServiceStackwidgetsapiFB659348.GET..{id}"
       }
     },
     "widgetsapiidGETApiPermissionTestMyWidgetServiceStackwidgetsapiFB659348GETid093D0B15": {
@@ -417,23 +615,20 @@
               {
                 "Ref": "widgetsapi0BCA0B12"
               },
-              "/test-invoke-stage/GET/{id}"
+              "/test-invoke-stage/GET/*"
             ]
           ]
         }
+      },
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/widgets-api/Default/{id}/GET/ApiPermission.Test.MyWidgetServiceStackwidgetsapiFB659348.GET..{id}"
       }
     },
     "widgetsapiidGETDEFE5D49": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
-        "HttpMethod": "GET",
-        "ResourceId": {
-          "Ref": "widgetsapiidBF5424ED"
-        },
-        "RestApiId": {
-          "Ref": "widgetsapi0BCA0B12"
-        },
         "AuthorizationType": "NONE",
+        "HttpMethod": "GET",
         "Integration": {
           "IntegrationHttpMethod": "POST",
           "RequestTemplates": {
@@ -463,7 +658,16 @@
               ]
             ]
           }
+        },
+        "ResourceId": {
+          "Ref": "widgetsapiidBF5424ED"
+        },
+        "RestApiId": {
+          "Ref": "widgetsapi0BCA0B12"
         }
+      },
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/widgets-api/Default/{id}/GET/Resource"
       }
     },
     "widgetsapiidDELETEApiPermissionMyWidgetServiceStackwidgetsapiFB659348DELETEid2B6F6B68": {
@@ -501,10 +705,13 @@
               {
                 "Ref": "widgetsapiDeploymentStageprod19E45538"
               },
-              "/DELETE/{id}"
+              "/DELETE/*"
             ]
           ]
         }
+      },
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/widgets-api/Default/{id}/DELETE/ApiPermission.MyWidgetServiceStackwidgetsapiFB659348.DELETE..{id}"
       }
     },
     "widgetsapiidDELETEApiPermissionTestMyWidgetServiceStackwidgetsapiFB659348DELETEid04CBA331": {
@@ -538,23 +745,20 @@
               {
                 "Ref": "widgetsapi0BCA0B12"
               },
-              "/test-invoke-stage/DELETE/{id}"
+              "/test-invoke-stage/DELETE/*"
             ]
           ]
         }
+      },
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/widgets-api/Default/{id}/DELETE/ApiPermission.Test.MyWidgetServiceStackwidgetsapiFB659348.DELETE..{id}"
       }
     },
     "widgetsapiidDELETEE1FEF8E3": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
-        "HttpMethod": "DELETE",
-        "ResourceId": {
-          "Ref": "widgetsapiidBF5424ED"
-        },
-        "RestApiId": {
-          "Ref": "widgetsapi0BCA0B12"
-        },
         "AuthorizationType": "NONE",
+        "HttpMethod": "DELETE",
         "Integration": {
           "IntegrationHttpMethod": "POST",
           "Type": "AWS_PROXY",
@@ -581,7 +785,16 @@
               ]
             ]
           }
+        },
+        "ResourceId": {
+          "Ref": "widgetsapiidBF5424ED"
+        },
+        "RestApiId": {
+          "Ref": "widgetsapi0BCA0B12"
         }
+      },
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/widgets-api/Default/{id}/DELETE/Resource"
       }
     },
     "RestAPIRoleA3B4EFA3": {
@@ -613,6 +826,9 @@
             ]
           }
         ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/RestAPIRole/Resource"
       }
     },
     "WidgetHandlerServiceRole455C9244": {
@@ -644,6 +860,9 @@
             ]
           }
         ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/WidgetHandler/ServiceRole/Resource"
       }
     },
     "WidgetHandlerServiceRoleDefaultPolicy69F8D632": {
@@ -657,7 +876,11 @@
                 "s3:GetBucket*",
                 "s3:List*",
                 "s3:DeleteObject*",
-                "s3:PutObject*",
+                "s3:PutObject",
+                "s3:PutObjectLegalHold",
+                "s3:PutObjectRetention",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging",
                 "s3:Abort*"
               ],
               "Effect": "Allow",
@@ -693,6 +916,9 @@
             "Ref": "WidgetHandlerServiceRole455C9244"
           }
         ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/WidgetHandler/ServiceRole/DefaultPolicy/Resource"
       }
     },
     "WidgetHandlerF8A613CA": {
@@ -700,40 +926,15 @@
       "Properties": {
         "Code": {
           "S3Bucket": {
-            "Ref": "AssetParameters89efb2e5dce7aaf45d0a5755f12ac55e10771d772b1d40d8417e7b529f514c38S3BucketAD62C2ED"
+            "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
           },
-          "S3Key": {
-            "Fn::Join": [
-              "",
-              [
-                {
-                  "Fn::Select": [
-                    0,
-                    {
-                      "Fn::Split": [
-                        "||",
-                        {
-                          "Ref": "AssetParameters89efb2e5dce7aaf45d0a5755f12ac55e10771d772b1d40d8417e7b529f514c38S3VersionKey2AB95057"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "Fn::Select": [
-                    1,
-                    {
-                      "Fn::Split": [
-                        "||",
-                        {
-                          "Ref": "AssetParameters89efb2e5dce7aaf45d0a5755f12ac55e10771d772b1d40d8417e7b529f514c38S3VersionKey2AB95057"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            ]
+          "S3Key": "1a0a4c5b5de274c8c880792a617ace8c248614465db739310c1bc9b8d7912320.zip"
+        },
+        "Environment": {
+          "Variables": {
+            "BUCKET": {
+              "Ref": "WidgetStoreDA467545"
+            }
           }
         },
         "Handler": "widgets.main",
@@ -743,19 +944,346 @@
             "Arn"
           ]
         },
-        "Runtime": "nodejs16.x",
-        "Environment": {
-          "Variables": {
-            "BUCKET": {
-              "Ref": "WidgetStoreDA467545"
-            }
-          }
-        },
+        "Runtime": "nodejs22.x",
         "Timeout": 300
       },
       "DependsOn": [
         "WidgetHandlerServiceRoleDefaultPolicy69F8D632",
         "WidgetHandlerServiceRole455C9244"
+      ],
+      "Metadata": {
+        "aws:cdk:path": "MyWidgetServiceStack/WidgetHandler/Resource",
+        "aws:asset:path": "/workplace/deckersl/github/aws-cdk-examples/java/my-widget-service/resources",
+        "aws:asset:is-bundled": false,
+        "aws:asset:property": "Code"
+      }
+    }
+  },
+  "Outputs": {
+    "widgetsapiEndpoint2B78C075": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "widgetsapi0BCA0B12"
+            },
+            ".execute-api.",
+            {
+              "Ref": "AWS::Region"
+            },
+            ".",
+            {
+              "Ref": "AWS::URLSuffix"
+            },
+            "/",
+            {
+              "Ref": "widgetsapiDeploymentStageprod19E45538"
+            },
+            "/"
+          ]
+        ]
+      }
+    }
+  },
+  "Conditions": {
+    "CDKMetadataAvailable": {
+      "Fn::Or": [
+        {
+          "Fn::Or": [
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "af-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-east-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-northeast-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-northeast-2"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-northeast-3"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-south-2"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-southeast-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-southeast-2"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-southeast-3"
+              ]
+            }
+          ]
+        },
+        {
+          "Fn::Or": [
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ap-southeast-4"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ca-central-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "ca-west-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "cn-north-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "cn-northwest-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-central-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-central-2"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-north-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-south-2"
+              ]
+            }
+          ]
+        },
+        {
+          "Fn::Or": [
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-west-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-west-2"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "eu-west-3"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "il-central-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "me-central-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "me-south-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "sa-east-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "us-east-1"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "us-east-2"
+              ]
+            },
+            {
+              "Fn::Equals": [
+                {
+                  "Ref": "AWS::Region"
+                },
+                "us-west-1"
+              ]
+            }
+          ]
+        },
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "AWS::Region"
+            },
+            "us-west-2"
+          ]
+        }
+      ]
+    }
+  },
+  "Parameters": {
+    "BootstrapVersion": {
+      "Type": "AWS::SSM::Parameter::Value<String>",
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+    }
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5"
+                  ],
+                  {
+                    "Ref": "BootstrapVersion"
+                  }
+                ]
+              }
+            ]
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+        }
       ]
     }
   }
