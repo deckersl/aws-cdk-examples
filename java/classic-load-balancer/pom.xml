@@ -33,7 +33,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.amazonaws.cdk.examples.ClassicLoadBalancerApp</mainClass>
+                            <mainClass>software.amazon.awscdk.examples.ClassicLoadBalancerApp</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
