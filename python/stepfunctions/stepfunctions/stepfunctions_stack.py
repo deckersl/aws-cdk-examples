@@ -14,12 +14,12 @@ class JobPollerStack(Stack):
 
         submit_lambda = _lambda.Function(self, 'submitLambda',
                                          handler='lambda_function.lambda_handler',
-                                         runtime=_lambda.Runtime.PYTHON_3_9,
+                                         runtime=_lambda.Runtime.PYTHON_3_13,
                                          code=_lambda.Code.from_asset('lambdas/submit'))
 
         status_lambda = _lambda.Function(self, 'statusLambda',
                                          handler='lambda_function.lambda_handler',
-                                         runtime=_lambda.Runtime.PYTHON_3_9,
+                                         runtime=_lambda.Runtime.PYTHON_3_13,
                                          code=_lambda.Code.from_asset('lambdas/status'))
 
         # Step functions Definition
