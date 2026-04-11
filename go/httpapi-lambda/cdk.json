@@ -1,5 +1,5 @@
 {
-  "app": "go mod download && go run httpapi-lambda.go",
+  "app": "GOPROXY=direct GONOSUMCHECK=* GONOSUMDB=* go mod download && go run httpapi-lambda.go",
   "watch": {
     "include": [
       "**"
