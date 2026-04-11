@@ -14,6 +14,9 @@
 # go.sum should be committed
 !go.sum
 
+# Compiled binary
+s3-event-processor
+
 # CDK asset staging directory
 .cdk.staging
 cdk.out

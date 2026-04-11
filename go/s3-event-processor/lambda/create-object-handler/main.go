@@ -9,34 +9,30 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-//Logs sqs messages in JSON format for optimal queries in CloudWatch
-func logSqsMessage(message events.SQSMessage) {
-
-	sqsBody := map[string]interface{}{}
-
-	err := json.Unmarshal([]byte(message.Body), &sqsBody)
-	if err != nil {
-		panic(err)
-	}
-
-	event := map[string]interface{}{
-		"message": "Received sqs message",
-		"sqsBody": sqsBody,
-	}
-
-	eventJson, err := json.Marshal(event)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(string(eventJson))
+type DeveloperInfo struct {
+	Status          string `json:"status"`
+	MessagesHandled int    `json:"messages_handled"`
+	Source          string `json:"source"`
 }
 
 func handler(ctx context.Context, event events.SQSEvent) (events.SQSEventResponse, error) {
-
-	for _, sqsMessage := range event.Records {
-		logSqsMessage(sqsMessage)
+	for _, msg := range event.Records {
+		body := map[string]interface{}{}
+		if err := json.Unmarshal([]byte(msg.Body), &body); err != nil {
+			fmt.Printf("{\"error\": \"failed to parse message\", \"messageId\": %q}\n", msg.MessageId)
+			continue
+		}
+		out, _ := json.Marshal(map[string]interface{}{"message": "Received sqs message", "sqsBody": body})
+		fmt.Println(string(out))
 	}
+
+	info := DeveloperInfo{
+		Status:          "ok",
+		MessagesHandled: len(event.Records),
+		Source:          "s3-event-processor",
+	}
+	infoJSON, _ := json.Marshal(info)
+	fmt.Println(string(infoJSON))
 
 	return events.SQSEventResponse{}, nil
 }

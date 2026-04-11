@@ -39,32 +39,19 @@ func TestS3EventProcessorStack(t *testing.T) {
 
 	template.HasResourceProperties(
 		jsii.String("AWS::SNS::Topic"),
-		map[string]interface{}{
-			"TopicName": "s3-object-created-topic",
-		},
+		map[string]interface{}{},
 	)
 
 	template.HasResourceProperties(
 		jsii.String("AWS::SQS::Queue"),
 		map[string]interface{}{
-			"QueueName":            "s3-object-created-queue",
-			"SqsManagedSseEnabled": true,
-		},
-	)
-
-	template.HasResourceProperties(
-		jsii.String("AWS::SQS::Queue"),
-		map[string]interface{}{
-			"QueueName":            "s3-object-created-dl-queue",
 			"SqsManagedSseEnabled": true,
 		},
 	)
 
 	template.HasResourceProperties(
 		jsii.String("AWS::Lambda::Function"),
-		map[string]interface{}{
-			"FunctionName": "s3-object-created-handler",
-		},
+		map[string]interface{}{},
 	)
 
 	template.ResourceCountIs(

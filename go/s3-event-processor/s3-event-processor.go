@@ -30,6 +30,8 @@ func NewS3EventProcessorStack(scope constructs.Construct, id string, props *S3Ev
 		EnforceSSL:        jsii.Bool(true),
 		Versioned:         jsii.Bool(true),
 		Encryption:        awss3.BucketEncryption_S3_MANAGED,
+		RemovalPolicy:     awscdk.RemovalPolicy_DESTROY,
+		AutoDeleteObjects: jsii.Bool(true),
 		LifecycleRules: &[]*awss3.LifecycleRule{
 			{
 				Enabled:    jsii.Bool(true),
@@ -44,18 +46,14 @@ func NewS3EventProcessorStack(scope constructs.Construct, id string, props *S3Ev
 		},
 	})
 
-	objectCreatedTopic := awssns.NewTopic(stack, jsii.String("ObjectCreatedTopic"), &awssns.TopicProps{
-		TopicName: jsii.String("s3-object-created-topic"),
-	})
+	objectCreatedTopic := awssns.NewTopic(stack, jsii.String("ObjectCreatedTopic"), &awssns.TopicProps{})
 
 	objectCreatedQueue := awssqs.NewQueue(stack, jsii.String("ObjectCreatedQueue"), &awssqs.QueueProps{
-		QueueName:  jsii.String("s3-object-created-queue"),
 		Encryption: awssqs.QueueEncryption_SQS_MANAGED,
 		EnforceSSL: jsii.Bool(true),
 	})
 	//Buffer for records that failed to process. Useful for troubleshooting and recovery.
 	objectCreatedDlQueue := awssqs.NewQueue(stack, jsii.String("ObjectCreatedDlQueue"), &awssqs.QueueProps{
-		QueueName:  jsii.String("s3-object-created-dl-queue"),
 		Encryption: awssqs.QueueEncryption_SQS_MANAGED,
 		EnforceSSL: jsii.Bool(true),
 	})
@@ -67,8 +65,8 @@ func NewS3EventProcessorStack(scope constructs.Construct, id string, props *S3Ev
 	}))
 
 	objectCreatedHandler := awscdklambdagoalpha.NewGoFunction(stack, jsii.String("ObjectCreatedHandler"), &awscdklambdagoalpha.GoFunctionProps{
-		FunctionName: jsii.String("s3-object-created-handler"),
-		Entry:        jsii.String("lambda/create-object-handler"),
+		Entry:   jsii.String("lambda/create-object-handler"),
+		Runtime: awslambda.Runtime_PROVIDED_AL2023(),
 		CurrentVersionOptions: &awslambda.VersionOptions{
 			RemovalPolicy: awscdk.RemovalPolicy_RETAIN,
 		},
