@@ -14,9 +14,7 @@ func TestEventbridgeSqsStack(t *testing.T) {
 
 	// WHEN
 	stack := NewEventbridgeSqsStack(app, "MyStack", &EventbridgeSqsStackProps{
-		awscdk.StackProps{
-			Env: env(),
-		},
+		awscdk.StackProps{},
 	})
 
 	// THEN

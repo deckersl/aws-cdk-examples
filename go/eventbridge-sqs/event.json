@@ -1,8 +1,8 @@
 [
-    {
-      "EventBusName": "MyEventBus",
-      "Source": "MyCdkApp",
-      "DetailType": "message-for-queue",
-      "Detail": "{\"message\":\"Hello CDK world! :)\"}"
-    }
-  ]
+  {
+    "EventBusName": "<eventBusName output from stack>",
+    "Source": "MyCdkApp",
+    "DetailType": "message-for-queue",
+    "Detail": "{\"message\":\"Hello CDK world! :)\"}"
+  }
+]

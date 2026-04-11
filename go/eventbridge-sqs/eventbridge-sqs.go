@@ -1,8 +1,6 @@
 package main
 
 import (
-	"os"
-
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsevents"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awseventstargets"
@@ -28,9 +26,7 @@ func NewEventbridgeSqsStack(scope constructs.Construct, id string, props *Eventb
 	})
 
 	// create EventBridge event bus
-	eventBus := awsevents.NewEventBus(stack, jsii.String("MyEventBus"), &awsevents.EventBusProps{
-		EventBusName: jsii.String("MyEventBus"),
-	})
+	eventBus := awsevents.NewEventBus(stack, jsii.String("MyEventBus"), &awsevents.EventBusProps{})
 
 	// create EventBridge rule
 	rule := awsevents.NewRule(stack, jsii.String("myEventBusRule"), &awsevents.RuleProps{
@@ -39,7 +35,6 @@ func NewEventbridgeSqsStack(scope constructs.Construct, id string, props *Eventb
 		EventPattern: &awsevents.EventPattern{
 			Source:     jsii.Strings("MyCdkApp"),
 			DetailType: jsii.Strings("message-for-queue"),
-			Region:     jsii.Strings(*props.Env.Region),
 		},
 	})
 
@@ -50,6 +45,12 @@ func NewEventbridgeSqsStack(scope constructs.Construct, id string, props *Eventb
 	awscdk.NewCfnOutput(stack, jsii.String("queueUrl"), &awscdk.CfnOutputProps{
 		Value:       queue.QueueUrl(),
 		Description: jsii.String("URL of SQS Queue"),
+	})
+
+	// log EventBus name
+	awscdk.NewCfnOutput(stack, jsii.String("eventBusName"), &awscdk.CfnOutputProps{
+		Value:       eventBus.EventBusName(),
+		Description: jsii.String("Name of EventBridge Bus"),
 	})
 
 	return stack
@@ -68,7 +69,5 @@ func main() {
 }
 
 func env() *awscdk.Environment {
-	return &awscdk.Environment{
-		Region: jsii.String(os.Getenv("AWS_DEFAULT_REGION")),
-	}
+	return nil
 }
