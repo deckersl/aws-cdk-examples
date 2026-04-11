@@ -7,6 +7,7 @@ import software.amazon.awscdk.services.stepfunctions.Activity;
 import software.amazon.awscdk.services.stepfunctions.Chain;
 import software.amazon.awscdk.services.stepfunctions.Choice;
 import software.amazon.awscdk.services.stepfunctions.Condition;
+import software.amazon.awscdk.services.stepfunctions.DefinitionBody;
 import software.amazon.awscdk.services.stepfunctions.Fail;
 import software.amazon.awscdk.services.stepfunctions.IChainable;
 import software.amazon.awscdk.services.stepfunctions.StateMachine;
@@ -63,7 +64,7 @@ public class StepFunctionsJobPollerStack extends Stack {
                       .otherwise(waitX));
 
       StateMachine.Builder.create(this, "StateMachine")
-          .definition(chain)
+          .definitionBody(DefinitionBody.fromChainable(chain))
           .timeout(Duration.seconds(30))
           .build();
 
