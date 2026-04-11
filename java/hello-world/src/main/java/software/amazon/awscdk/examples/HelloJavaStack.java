@@ -3,8 +3,10 @@ package software.amazon.awscdk.examples;
 import software.constructs.Construct;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.services.autoscaling.AutoScalingGroup;
+import software.amazon.awscdk.services.ec2.AmazonLinuxGeneration;
 import software.amazon.awscdk.services.ec2.AmazonLinuxImage;
 import software.amazon.awscdk.services.ec2.InstanceType;
+import software.amazon.awscdk.services.ec2.LaunchTemplate;
 import software.amazon.awscdk.services.ec2.Vpc;
 import software.amazon.awscdk.services.sns.Topic;
 
@@ -40,9 +42,13 @@ class HelloJavaStack extends Stack {
         final Construct parent, final String name, final MyAutoScalingGroupProps props) {
       super(parent, name);
 
-      AutoScalingGroup.Builder.create(this, "Compute")
+      LaunchTemplate lt = LaunchTemplate.Builder.create(this, "LT")
           .instanceType(new InstanceType("t2.micro"))
-          .machineImage(new AmazonLinuxImage())
+          .machineImage(AmazonLinuxImage.Builder.create().generation(AmazonLinuxGeneration.AMAZON_LINUX_2).build())
+          .build();
+
+      AutoScalingGroup.Builder.create(this, "Compute")
+          .launchTemplate(lt)
           .vpc(props.vpc)
           .build();
     }
