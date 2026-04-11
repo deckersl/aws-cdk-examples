@@ -13,7 +13,7 @@ class ApiCorsLambdaStack(Stack):
 
         base_lambda = _lambda.Function(self, 'ApiCorsLambda',
                                        handler='lambda-handler.handler',
-                                       runtime=_lambda.Runtime.PYTHON_3_12,
+                                       runtime=_lambda.Runtime.PYTHON_3_13,
                                        code=_lambda.Code.from_asset('lambda'))
 
         base_api = _apigw.RestApi(self, 'ApiGatewayWithCors',
