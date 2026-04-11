@@ -46,6 +46,8 @@ public class ECSFargateLoadBalancedStack extends Stack {
             .get(0)
             .addIngressRule(Peer.ipv4(vpc.getVpcCidrBlock()), Port.tcp(80), "allow http inbound from vpc");
 
-        
+        new CfnOutput(this, "LoadBalancerDNS", CfnOutputProps.builder()
+                .value(fargateService.getLoadBalancer().getLoadBalancerDnsName())
+                .build());
     }
 }
