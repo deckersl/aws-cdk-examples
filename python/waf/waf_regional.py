@@ -168,7 +168,6 @@ class WafRegionalStack(Stack):
         sampled_requests_enabled   =True
       ),
       description = "WAFv2 ACL for Regional",
-      name        = "waf-regional",
       rules       = self.make_rules(managed_rules),
     ) ## wafv2.CfnWebACL
 
@@ -176,4 +175,4 @@ class WafRegionalStack(Stack):
     Tags.of(wafacl).add("Purpose",   "WAF for Regional", priority=300)
     Tags.of(wafacl).add("CreatedBy", "Cloudformation",   priority=300)
 
-    CfnOutput(self, "WafAclArn", export_name="WafRegionalStack:WafAclRegionalArn", value=wafacl.attr_arn)
+    CfnOutput(self, "WafAclArn", value=wafacl.attr_arn)

@@ -169,7 +169,6 @@ class WafCloudFrontStack(Stack):
         sampled_requests_enabled   =True
       ),
       description = "WAFv2 ACL for CloudFront",
-      name        = "waf-cloudfront",
       rules       = self.make_rules(managed_rules),
     ) ## wafv2.CfnWebACL
 
@@ -178,4 +177,4 @@ class WafCloudFrontStack(Stack):
     Tags.of(wafacl).add("CreatedBy", "Cloudformation",     priority=300)
 
 
-    CfnOutput(self, "WafAclArn", export_name="WafCloudFrontStack:WafAclCloudFrontArn", value=wafacl.attr_arn)
+    CfnOutput(self, "WafAclArn", value=wafacl.attr_arn)
