@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-import base64
 from aws_cdk import (
     aws_autoscaling as autoscaling,
     aws_ec2 as ec2,
     aws_elasticloadbalancingv2 as elbv2,
-    aws_certificatemanager as acm,
     App, CfnOutput, Stack
 )
 
@@ -13,66 +11,50 @@ class LoadBalancerStack(Stack):
     def __init__(self, app: App, id: str) -> None:
         super().__init__(app, id)
 
-        # Create a VPC for our infrastructure
         vpc = ec2.Vpc(self, "VPC")
 
-        # Read and prepare user data script for EC2 instances
-        data = open("./httpd.sh", "rb").read()
-        httpd=ec2.UserData.for_linux()
-        httpd.add_commands(str(data,'utf-8'))
+        user_data = ec2.UserData.for_linux()
+        with open("./httpd.sh", "r") as f:
+            user_data.add_commands(f.read())
 
-        # Create an Auto Scaling Group with EC2 instances
-        asg = autoscaling.AutoScalingGroup(
-            self,
-            "ASG",
-            vpc=vpc,
+        sg = ec2.SecurityGroup(self, "ASGSG", vpc=vpc)
+
+        lt = ec2.LaunchTemplate(
+            self, "LT",
             instance_type=ec2.InstanceType.of(
-                ec2.InstanceClass.BURSTABLE2, ec2.InstanceSize.MICRO
+                ec2.InstanceClass.BURSTABLE4_GRAVITON, ec2.InstanceSize.MICRO
             ),
-            machine_image=ec2.AmazonLinuxImage(generation=ec2.AmazonLinuxGeneration.AMAZON_LINUX_2),
-            user_data=httpd,
+            machine_image=ec2.MachineImage.latest_amazon_linux2023(
+                cpu_type=ec2.AmazonLinuxCpuType.ARM_64,
+            ),
+            user_data=user_data,
+            require_imdsv2=True,
+            security_group=sg,
         )
 
-        # Create an Application Load Balancer
+        asg = autoscaling.AutoScalingGroup(
+            self, "ASG",
+            vpc=vpc,
+            launch_template=lt,
+            min_capacity=1,
+            max_capacity=3,
+        )
+
         lb = elbv2.ApplicationLoadBalancer(
             self, "LB",
             vpc=vpc,
-            internet_facing=True)
-
-        # Create HTTP listener with redirect
-        http_listener = lb.add_listener(
-            "HttpListener", 
-            port=80,
-            default_action=elbv2.ListenerAction.redirect(
-                port="443",
-                protocol="HTTPS",
-                permanent=True,
-                host="#{host}",
-                path="/#{path}",
-                query="#{query}"
-            )
+            internet_facing=True,
         )
 
-        # Create HTTPS listener
-        https_listener = lb.add_listener(
-            "HttpsListener",
-            port=443,
-            certificates=[elbv2.ListenerCertificate.from_arn("certificate_arn")],
-            ssl_policy=elbv2.SslPolicy.RECOMMENDED
-        )
+        listener = lb.add_listener("HttpListener", port=80)
+        listener.add_targets("Target", port=80, targets=[asg])
+        listener.connections.allow_default_port_from_any_ipv4("Open to the world")
 
-        # Add target group to HTTPS listener
-        https_listener.add_targets("Target", port=80, targets=[asg])
-        https_listener.connections.allow_default_port_from_any_ipv4("Open to the world")
-
-        # Configure Auto Scaling based on request count
         asg.scale_on_request_count("AModestLoad", target_requests_per_minute=60)
-        
-        # Output the Load Balancer DNS name
-        CfnOutput(self,"LoadBalancer",export_name="LoadBalancer",value=lb.load_balancer_dns_name)
+
+        CfnOutput(self, "LoadBalancerDNS", value=lb.load_balancer_dns_name)
 
 
-# Initialize the CDK app and create the stack
 app = App()
 LoadBalancerStack(app, "LoadBalancerStack")
 app.synth()
