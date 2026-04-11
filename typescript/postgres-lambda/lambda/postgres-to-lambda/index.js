@@ -37,12 +37,16 @@ exports.handler = async (event) => {
 
     return {
       statusCode: 200,
+      service: 'postgres-to-lambda',
+      timestamp: new Date().toISOString(),
       body: result,
     };
   } catch (error) {
     console.error('Error:', error);
     return {
       statusCode: 500,
+      service: 'postgres-to-lambda',
+      timestamp: new Date().toISOString(),
       body: {
         status: 'error',
         message: error.message,

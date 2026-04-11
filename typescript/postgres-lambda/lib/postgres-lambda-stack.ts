@@ -28,6 +28,8 @@ export class PostgresLambdaStack extends cdk.Stack {
       serverlessV2MaxCapacity: 1,
       defaultDatabaseName: 'demodb',
       credentials: rds.Credentials.fromGeneratedSecret('postgres'),
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      deletionProtection: false,
     });
 
 
@@ -35,6 +37,8 @@ export class PostgresLambdaStack extends cdk.Stack {
     const bundleCommand = [
       'bash', '-c', [
         'cp -r . /asset-output/',
+        'cd /asset-output',
+        'HOME=/tmp npm install --no-package-lock',
       ].join(' && ')
     ]
 

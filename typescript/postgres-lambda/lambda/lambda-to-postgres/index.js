@@ -63,6 +63,8 @@ exports.handler = async (event) => {
     return {
       statusCode: 200,
       body: JSON.stringify({
+        service: 'lambda-to-postgres',
+        timestamp: new Date().toISOString(),
         message: 'Query executed successfully',
         records: result.rows,
       }),
@@ -72,7 +74,8 @@ exports.handler = async (event) => {
     return {
       statusCode: 500,
       body: JSON.stringify({
-        message: 'Error executing query',
+        service: 'lambda-to-postgres',
+        timestamp: new Date().toISOString(),
         error: error.message,
       }),
     };
