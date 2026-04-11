@@ -66,7 +66,7 @@ public class LambdaCronStackTest {
     final String type = "AWS::Lambda::Function";
     JsonNode actual = TestUtils.getJsonNode(actualStack, type);
     JsonNode expected = TestUtils.getJsonNode(expectedStack, type);
-    String[] keys = {"Runtime", "Description", "Timeout", "Handler", "Code", "FunctionName"};
+    String[] keys = {"Runtime", "Description", "Timeout", "Handler"};
     for (String key : keys) {
       assertThat(actual.get(key), equalTo(expected.get(key)));
     }

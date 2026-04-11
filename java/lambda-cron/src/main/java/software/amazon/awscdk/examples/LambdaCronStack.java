@@ -18,11 +18,26 @@ class LambdaCronStack extends Stack {
 
     SingletonFunction lambdaFunction =
         SingletonFunction.Builder.create(this, "cdk-lambda-cron")
-            .description("Lambda which prints \"I'm running\"")
-            .code(Code.fromInline("def main(event, context):\n" + "    print(\"I'm running!\")\n"))
+            .description("Scheduled Lambda — CDK Java Example")
+            .code(Code.fromInline(
+                "import json, sys, platform, os\n" +
+                "def main(event, context):\n" +
+                "    info = {\n" +
+                "        'project': 'lambda-cron',\n" +
+                "        'language': 'Java (CDK) / Python (runtime)',\n" +
+                "        'runtime': f'Python {sys.version}',\n" +
+                "        'platform': platform.platform(),\n" +
+                "        'architecture': platform.machine(),\n" +
+                "        'handler': context.function_name,\n" +
+                "        'region': os.environ.get('AWS_REGION', 'unknown'),\n" +
+                "        'cdk_construct': 'SingletonFunction + Rule',\n" +
+                "        'schedule': 'cron(0 18 ? * MON-FRI *)',\n" +
+                "    }\n" +
+                "    print(json.dumps(info, indent=2))\n" +
+                "    return info\n"))
             .handler("index.main")
             .timeout(Duration.seconds(300))
-            .runtime(Runtime.PYTHON_3_9)
+            .runtime(Runtime.PYTHON_3_13)
             .uuid(UUID.randomUUID().toString())
             .build();
 
