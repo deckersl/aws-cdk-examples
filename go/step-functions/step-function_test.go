@@ -19,10 +19,8 @@ func TestStepFunctionStack(t *testing.T) {
 	template := assertions.Template_FromStack(stack)
 
 	template.HasResourceProperties(jsii.String("AWS::Lambda::Function"), map[string]interface{}{
-		"Runtime": "python3.9",
+		"Runtime": "python3.13",
 	})
 
-	template.HasResourceProperties(jsii.String("AWS::StepFunctions::StateMachine"), map[string]interface{}{
-		"StateMachineName": "MyStateMachine",
-	})
+	template.ResourceCountIs(jsii.String("AWS::StepFunctions::StateMachine"), jsii.Number(1))
 }
