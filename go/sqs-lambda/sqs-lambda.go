@@ -24,12 +24,11 @@ func NewSqsLambdaStack(scope constructs.Construct, id string, props *SqsLambdaSt
 	// create SQS queue
 	queue := awssqs.NewQueue(stack, jsii.String("EventbridgeSqsQueue"), &awssqs.QueueProps{
 		VisibilityTimeout: awscdk.Duration_Seconds(jsii.Number(300)),
-		QueueName:         jsii.String("MySqsQueue"),
 	})
 
 	// create Lambda function
 	lambda := awscdklambdagoalpha.NewGoFunction(stack, jsii.String("myGoHandler"), &awscdklambdagoalpha.GoFunctionProps{
-		Runtime: awslambda.Runtime_PROVIDED_AL2(),
+		Runtime: awslambda.Runtime_PROVIDED_AL2023(),
 		Entry:   jsii.String("./sqs-consumer-handler"),
 		Events: &[]awslambda.IEventSource{
 			awslambdaeventsources.NewSqsEventSource(queue, &awslambdaeventsources.SqsEventSourceProps{
