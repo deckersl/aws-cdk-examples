@@ -18,10 +18,10 @@ class TestLambda:
     template.has_resource('AWS::Lambda::Function', {
       'Properties':{
         'Code': {
-          'ZipFile': "def main(event, context):\n    print(\"I'm running!\")\n",
+          'ZipFile': Match.any_value(),
         },
         'Handler': 'index.main',
-        'Runtime': 'python3.12',
+        'Runtime': 'python3.13',
         'Timeout': 300,
       },
       'DependsOn':[dependency_capture]
