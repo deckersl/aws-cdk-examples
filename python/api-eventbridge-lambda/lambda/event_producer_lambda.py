@@ -30,10 +30,15 @@ def lambda_handler(event, context):
 
     logger.info(response)
 
-    # Returns success reponse to API Gateway
+    # Returns success response to API Gateway
     return {
         "statusCode": 200,
         "body": json.dumps({
-            "result": "from Producer"
+            "service": "api-eventbridge-lambda",
+            "component": "event_producer",
+            "action": "put_events",
+            "status": "success",
+            "event_source": "com.mycompany.myapp",
+            "failed_count": response["FailedEntryCount"]
         }),
     }

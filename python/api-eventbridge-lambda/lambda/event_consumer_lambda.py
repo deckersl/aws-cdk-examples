@@ -11,6 +11,10 @@ def lambda_handler(event, context):
     return {
         "statusCode": 200,
         "body": json.dumps({
-            "result": "testing..."
+            "service": "api-eventbridge-lambda",
+            "component": "event_consumer",
+            "action": "process_event",
+            "status": "success",
+            "detail_type": event.get("detail-type", "unknown")
         }),
     }

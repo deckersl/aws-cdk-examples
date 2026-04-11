@@ -20,7 +20,7 @@ class ApiEventBridgeLambdaStack(Stack):
         # Producer Lambda
         #
         event_producer_lambda = _lambda.Function(self, "eventProducerLambda",
-                                                 runtime=_lambda.Runtime.PYTHON_3_8,
+                                                 runtime=_lambda.Runtime.PYTHON_3_13,
                                                  handler="event_producer_lambda.lambda_handler",
                                                  code=_lambda.Code.from_asset("lambda")
                                                  )
@@ -33,7 +33,7 @@ class ApiEventBridgeLambdaStack(Stack):
         # Approved Consumer1
         #
         event_consumer1_lambda = _lambda.Function(self, "eventConsumer1Lambda",
-                                                  runtime=_lambda.Runtime.PYTHON_3_8,
+                                                  runtime=_lambda.Runtime.PYTHON_3_13,
                                                   handler="event_consumer_lambda.lambda_handler",
                                                   code=_lambda.Code.from_asset("lambda")
                                                   )
@@ -49,7 +49,7 @@ class ApiEventBridgeLambdaStack(Stack):
         # Approved Consumer2
         #
         event_consumer2_lambda = _lambda.Function(self, "eventConsumer2Lambda",
-                                                  runtime=_lambda.Runtime.PYTHON_3_8,
+                                                  runtime=_lambda.Runtime.PYTHON_3_13,
                                                   handler="event_consumer_lambda.lambda_handler",
                                                   code=_lambda.Code.from_asset("lambda")
                                                   )
