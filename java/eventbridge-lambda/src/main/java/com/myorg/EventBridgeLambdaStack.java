@@ -35,11 +35,10 @@ public class EventBridgeLambdaStack extends Stack {
     CfnParameter emailAddressParameter = new CfnParameter(this, "email", emailAddressCfnParameterProps);
     topic.addSubscription(new EmailSubscription(emailAddressParameter.getValueAsString()));
     SingletonFunction lambdaFunction = SingletonFunction.Builder.create(this, "Singleton")
-      .functionName("Singleton")
       .code(InlineCode.fromInline(getInlineCode()))
       .handler("index.main")
       .timeout(Duration.seconds(300))
-      .runtime(Runtime.PYTHON_3_9)
+      .runtime(Runtime.PYTHON_3_13)
       .environment(Map.of("TOPIC_ARN", topic.getTopicArn()))
       .uuid("")
       .build();

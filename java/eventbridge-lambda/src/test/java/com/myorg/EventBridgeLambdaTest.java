@@ -153,7 +153,7 @@ public class EventBridgeLambdaTest {
       "/Properties/Environment/Variables/TOPIC_ARN/Ref", topicId,
       "/Properties/Role/Fn::GetAtt/0", iamRoleId,
       "/Properties/Handler", "index.main",
-      "/Properties/Runtime", "python3.9",
+      "/Properties/Runtime", "python3.13",
       "/Properties/Timeout", "300"
     );
     Assertions.assertNotNull(findResource(stackResourcesMap, lambdaMatchMap));
