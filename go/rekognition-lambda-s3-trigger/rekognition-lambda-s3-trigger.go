@@ -34,7 +34,8 @@ func NewRekognitionLambdaS3TriggerStack(scope constructs.Construct, id string, p
 
 	// Create S3 Bucket
 	bucket := awss3.NewBucket(stack, aws.String("Bucket"), &awss3.BucketProps{
-		RemovalPolicy: awscdk.RemovalPolicy_DESTROY,
+		RemovalPolicy:    awscdk.RemovalPolicy_DESTROY,
+		AutoDeleteObjects: jsii.Bool(true),
 	})
 
 	// Create DynamoDb table

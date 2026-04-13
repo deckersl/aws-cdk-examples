@@ -24,21 +24,25 @@ type Event struct {
 	} `json:"Records"`
 }
 
-func handler(event Event) (*dynamodb.PutItemOutput, error) {
-	// Load config
+type Response struct {
+	ImageName string   `json:"image_name"`
+	Labels    []string `json:"labels"`
+	Table     string   `json:"table"`
+	Status    string   `json:"status"`
+}
+
+func handler(event Event) (*Response, error) {
 	cfg, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
-		panic(fmt.Errorf("unable to load SDK config, %v", err))
+		return nil, fmt.Errorf("unable to load SDK config: %v", err)
 	}
 
-	// Create clients
 	dynamodbClient := dynamodb.NewFromConfig(cfg)
 	rekognitionClient := rekognition.NewFromConfig(cfg)
 
 	key := event.Records[0].S3.Object.Key
 
-	// Detect labels in the image
-	detectLabelsInput := &rekognition.DetectLabelsInput{
+	detectLabelsOutput, err := rekognitionClient.DetectLabels(context.TODO(), &rekognition.DetectLabelsInput{
 		Image: &rekognitionTypes.Image{
 			S3Object: &rekognitionTypes.S3Object{
 				Bucket: aws.String(os.Getenv("BUCKET_NAME")),
@@ -47,34 +51,36 @@ func handler(event Event) (*dynamodb.PutItemOutput, error) {
 		},
 		MaxLabels:     aws.Int32(10),
 		MinConfidence: aws.Float32(70),
-	}
-	detectLabelsOutput, err := rekognitionClient.DetectLabels(context.TODO(), detectLabelsInput)
+	})
 	if err != nil {
-		panic(fmt.Errorf("unable to detect labels, %v", err))
+		return nil, fmt.Errorf("unable to detect labels: %v", err)
 	}
 
-	// Get the list of labels
 	labels := make([]string, 0, len(detectLabelsOutput.Labels))
 	for _, label := range detectLabelsOutput.Labels {
 		labels = append(labels, *label.Name)
 	}
 	fmt.Println(labels)
 
-	// Write the image name and labels to DynamoDB
 	tableName := os.Getenv("TABLE_NAME")
-	putItemInput := &dynamodb.PutItemInput{
+	_, err = dynamodbClient.PutItem(context.TODO(), &dynamodb.PutItemInput{
 		TableName: aws.String(tableName),
 		Item: map[string]types.AttributeValue{
 			"image_name": &types.AttributeValueMemberS{Value: key},
 			"labels":     &types.AttributeValueMemberS{Value: fmt.Sprintf("%v", labels)},
 		},
 		ConditionExpression: aws.String("attribute_not_exists(image_name)"),
-	}
-	output, err := dynamodbClient.PutItem(context.TODO(), putItemInput)
+	})
 	if err != nil {
-		panic(fmt.Errorf("unable to put item, %v", err))
+		return nil, fmt.Errorf("unable to put item: %v", err)
 	}
-	return output, nil
+
+	return &Response{
+		ImageName: key,
+		Labels:    labels,
+		Table:     tableName,
+		Status:    "ok",
+	}, nil
 }
 
 func main() {
