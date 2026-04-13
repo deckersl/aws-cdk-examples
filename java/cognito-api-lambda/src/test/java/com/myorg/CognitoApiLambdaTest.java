@@ -76,7 +76,6 @@ public class CognitoApiLambdaTest {
     var lambdaIAMRoleId = findResourceId(stackResourcesMap, lambdaIAMRoleMatchMap);
     var lambdaMatchMap = Map.of(
       "/Type", "AWS::Lambda::Function",
-      "/Properties/FunctionName", "helloWorldFunction",
       "/Properties/Role/Fn::GetAtt/0", lambdaIAMRoleId,
       "/Properties/Handler", "index.handler",
       "/Properties/Runtime", "python3.12"

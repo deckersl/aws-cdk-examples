@@ -29,7 +29,6 @@ public class CognitoApiLambdaStack extends Stack {
   public CognitoApiLambdaStack(final Construct scope, final String id, final StackProps props) {
     super(scope, id, props);
     var helloWorldFunction = SingletonFunction.Builder.create(this, "helloWorldFunction")
-      .functionName("helloWorldFunction")
       .code(InlineCode.fromInline(getInlineCode()))
       .handler("index.handler")
       .runtime(Runtime.PYTHON_3_12)
