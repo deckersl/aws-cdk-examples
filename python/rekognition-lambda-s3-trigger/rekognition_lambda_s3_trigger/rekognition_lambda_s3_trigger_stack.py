@@ -1,10 +1,5 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
-#
-# This code is sample only. Not for use in production.
-#
-# Author: Katreena Mullican
-# Contact: mullicak@amazon.com
 
 from aws_cdk import (
     aws_iam as iam,
@@ -12,6 +7,7 @@ from aws_cdk import (
     aws_s3 as s3,
     aws_dynamodb as ddb,
     aws_s3_notifications as s3_notifications,
+    RemovalPolicy,
     Stack
 )
 from constructs import Construct
@@ -23,28 +19,29 @@ class RekognitionLambdaS3TriggerStack(Stack):
         # create new IAM group and user
         group = iam.Group(self, "RekGroup")
         user = iam.User(self, "RekUser")
-
-        # add IAM user to the new group
         user.add_to_group(group)
 
         # create S3 bucket to hold images
-        # give new user access to the bucket
-        bucket = s3.Bucket(self, 'Bucket')
+        bucket = s3.Bucket(self, 'Bucket',
+            removal_policy=RemovalPolicy.DESTROY,
+            auto_delete_objects=True
+        )
         bucket.grant_read_write(user)
 
         # create DynamoDB table to hold Rekognition results
         table = ddb.Table(
             self, 'Classifications',
-            partition_key=ddb.Attribute(name='image_name', type=ddb.AttributeType.STRING)
+            partition_key=ddb.Attribute(name='image_name', type=ddb.AttributeType.STRING),
+            removal_policy=RemovalPolicy.DESTROY
         )
 
         # create Lambda function
         lambda_function = _lambda.Function(
             self, 'RekFunction',
-            runtime = _lambda.Runtime.PYTHON_3_8,
-            handler = 'rekfunction.handler',
-            code = _lambda.Code.from_asset('rekognition_lambda_s3_trigger/lambda'),
-            environment = {
+            runtime=_lambda.Runtime.PYTHON_3_13,
+            handler='rekfunction.handler',
+            code=_lambda.Code.from_asset('rekognition_lambda_s3_trigger/lambda'),
+            environment={
                 'BUCKET_NAME': bucket.bucket_name,
                 'TABLE_NAME': table.table_name
             }
